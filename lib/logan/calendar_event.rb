@@ -7,6 +7,6 @@ module Logan
     attr_accessor :id
     attr_accessor :summary
     attr_accessor :starts_at
-		attr_accessor :creator_id
+		attr_accessor :creator
   end  
 end
