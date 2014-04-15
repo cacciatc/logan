@@ -68,20 +68,12 @@ module Logan
       end
     end
 
-		def calendar_events
-      response = self.class.get '/calendar_events.json'
-    
-			events = []	
-      response.parsed_response.each do |h| 
-        events.push(new Logan::CalendarEvent.new(h))
-        
-        # grab the project ID for this list from the url
-        #list.project_id = list.url.scan( /projects\/(\d+)/).last.first
-        
-        # return the list so this method returns an array of lists
-        #list
+		def calendar_events(id)
+      response = self.class.get "/projects/#{id}/calendar_events.json"
+			
+      response.parsed_response.map do |h| 
+        Logan::CalendarEvent.new(h)
 			end
-			events
 		end
     
     def events(since_time, page = 1)
