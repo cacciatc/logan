@@ -3,7 +3,6 @@ require 'logan/project'
 module Logan
   class Client
     include HTTParty
-    
     # Initializes the Logan shared client with information required to communicate with Basecamp
     #
     # @param basecamp_id [String] the Basecamp company ID

@@ -1,10 +1,18 @@
 require 'logan/HashConstructed'
 require 'logan/todo'
+#require 'mongoid'
 
 module Logan
+#class MTodoList
+#				  include Mongoid::Document
+#					  field :basecamp_id
+#						  field :etag
+#							  field :payload
+#end
+	
   class TodoList
     include HashConstructed
-    
+
     attr_accessor :id
     attr_accessor :project_id
     attr_accessor :name
@@ -16,6 +24,7 @@ module Logan
     attr_writer :remaining_todos
     attr_writer :completed_todos
     
+		@@store = {}
     # intializes a todo list by calling the HashConstructed initialize method and 
     # setting both @remaining_todos and @completed_todos to empty arrays
     def initialize(h)
@@ -30,9 +39,24 @@ module Logan
     
     # refreshes the data for this todo list from the API
     def refresh
-      response = Logan::Client.get "/projects/#{@project_id}/todolists/#{@id}.json"
-      initialize(response.parsed_response)
-    end
+			#tl = MTodoList.where(basecamp_id: @id).first_or_initialize
+			tl = @@store[@id]
+			if tl != nil
+				options = {:headers => {"If-Modified-Since" => tl[:etag] ,"If-None-Match" => tl[:etag], 'User-Agent' => 'Lofty Word Hotlist (chris.cacciatore@gmail.com)'}}
+			else
+				options = {}
+			end
+			response = Logan::Client.get "/projects/#{@project_id}/todolists/#{@id}.json", options
+			if response.headers["status"].strip == "304 Not Modified" && @@store[@id] != nil
+				initialize(@@store[@id][:payload])
+			else
+				initialize(response.parsed_response)
+				@@store[@id] = {
+					:payload => response.parsed_response,
+					:etag => response.headers['etag']
+				}
+			end
+		end
     
     # returns the array of remaining todos - potentially synchronously downloaded from API
     #  
